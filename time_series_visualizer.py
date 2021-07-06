@@ -1,3 +1,5 @@
+from datetime import date, datetime
+import calendar
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -8,7 +10,7 @@ register_matplotlib_converters()
 # Import data (Make sure to parse dates. Consider setting index column to 'date'.)
 df = pd.read_csv("fcc-forum-pageviews.csv", index_col="date")
 
-print(df.head())
+#print(df.head())
 
 
 # Clean data
@@ -29,19 +31,27 @@ def draw_line_plot():
     fig.savefig('line_plot.png')
     return fig
 
+
+
 def draw_bar_plot():
     # Copy and modify data for monthly bar plot
-    df_bar = None
+    df_bar = df.copy()
+    df_bar['date'] = pd.to_datetime(df_bar.index, format='%Y-%m-%d')
+    df_bar['month'] = df_bar['date'].dt.to_period('M')
+    df_bar['year'] = df_bar['date'].dt.to_period('Y')
+
+    data = df_bar.groupby('month').mean()
+    data['year'] = data.index.year
+    data['month'] = data.index.month
+    data['month'] = data['month'].apply(lambda x: calendar.month_abbr[x])
+    print(data)
 
     # Draw bar plot
-
-    fig, ax = plt.figure()
-
+    fig, ax = plt.subplots(1,1, figsize=(30,10))
 
 
-
+    sns.barplot(data=data, y='value', x='year', hue='month')
     # Save image and return fig (don't change this part)
-    fig.savefig('bar_plot.png')
     return fig
 
 def draw_box_plot():
